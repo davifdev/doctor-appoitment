@@ -1,7 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const loginSchema = z.object({
   email: z.email("E-mail inválido").trim().min(1, "E-mail é obrigatório"),
@@ -32,6 +36,7 @@ const loginSchema = z.object({
 type LoginSchemaType = z.infer<typeof loginSchema>;
 
 const SignInForm = () => {
+  const router = useRouter();
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -40,8 +45,21 @@ const SignInForm = () => {
     },
   });
 
-  const onSubmit = (data: LoginSchemaType) => {
-    console.log(data);
+  const onSubmit = async (data: LoginSchemaType) => {
+    await authClient.signIn.email(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          router.push("/dashboard");
+        },
+        onError: () => {
+          toast.error("E-mail ou senha inválidos");
+        },
+      }
+    );
   };
 
   return (
@@ -49,10 +67,8 @@ const SignInForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>
-              Make changes your here. Click save when you´re done
-            </CardDescription>
+            <CardTitle>Login</CardTitle>
+            <CardDescription>Faça login para continuar </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Controller
@@ -64,6 +80,7 @@ const SignInForm = () => {
                   <Input
                     {...field}
                     id={field.name}
+                    type="email"
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite o seu e-mail"
                     autoComplete="off"
@@ -83,6 +100,7 @@ const SignInForm = () => {
                   <Input
                     {...field}
                     id={field.name}
+                    type="password"
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite a sua senha"
                     autoComplete="off"
@@ -95,8 +113,15 @@ const SignInForm = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
-              Entrar
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting && (
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {form.formState.isSubmitting ? "Aguarde..." : "Entrar"}
             </Button>
           </CardFooter>
         </FieldGroup>

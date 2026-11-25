@@ -138,7 +138,7 @@ const SignUpForm = () => {
               {form.formState.isSubmitting && (
                 <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Criar conta
+              {form.formState.isSubmitting ? "Aguarde..." : "Criar conta"}
             </Button>
           </CardFooter>
         </FieldGroup>
