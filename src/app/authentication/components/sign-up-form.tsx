@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 
@@ -20,6 +22,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const registerSchema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório"),
@@ -33,6 +36,7 @@ const registerSchema = z.object({
 type RegisterSchemaType = z.infer<typeof registerSchema>;
 
 const SignUpForm = () => {
+  const router = useRouter();
   const form = useForm<RegisterSchemaType>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -42,8 +46,17 @@ const SignUpForm = () => {
     },
   });
 
-  const onSubmit = (data: RegisterSchemaType) => {
-    console.log(data);
+  const onSubmit = async (data: RegisterSchemaType) => {
+    await authClient.signUp.email(
+      {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => router.push("/dashboard"),
+      }
+    );
   };
 
   return (
@@ -51,10 +64,8 @@ const SignUpForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>
-              Make changes your here. Click save when you´re done
-            </CardDescription>
+            <CardTitle>Criar conta</CardTitle>
+            <CardDescription>Crie uma conta para continuar.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Controller
@@ -66,6 +77,7 @@ const SignUpForm = () => {
                   <Input
                     {...field}
                     id={field.name}
+
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite o seu nome"
                     autoComplete="off"
@@ -85,6 +97,7 @@ const SignUpForm = () => {
                   <Input
                     {...field}
                     id={field.name}
+                    type="email"
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite o seu e-mail"
                     autoComplete="off"
@@ -104,6 +117,7 @@ const SignUpForm = () => {
                   <Input
                     {...field}
                     id={field.name}
+                    type="password"
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite a sua senha"
                     autoComplete="off"
@@ -116,7 +130,14 @@ const SignUpForm = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting && (
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Criar conta
             </Button>
           </CardFooter>
