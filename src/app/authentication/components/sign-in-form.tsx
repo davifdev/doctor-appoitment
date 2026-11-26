@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -62,6 +63,13 @@ const SignInForm = () => {
     );
   };
 
+  const handleGoogleLogin = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard",
+    });
+  };
+
   return (
     <Card>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -112,7 +120,7 @@ const SignInForm = () => {
               )}
             />
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-2">
             <Button
               type="submit"
               className="w-full"
@@ -122,6 +130,20 @@ const SignInForm = () => {
                 <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               )}
               {form.formState.isSubmitting ? "Aguarde..." : "Entrar"}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleLogin}
+              type="button"
+            >
+              <Image
+                src="/google.png"
+                alt="Google Icon"
+                width={18}
+                height={18}
+              />
+              Entrar com Google
             </Button>
           </CardFooter>
         </FieldGroup>
